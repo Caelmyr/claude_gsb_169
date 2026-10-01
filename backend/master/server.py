@@ -322,10 +322,9 @@ class Master:
             body = request.get_json(silent=True) or {}
             incoming = ClusterConfig.from_dict(body).validated()
             # Mutate the shared config object in place so the scheduler (which
-            # holds the same reference) sees the new values immediately.
+            # holds the same reference) sees the new values immediately; the
+            # scheduler loop reads scheduler_tick_sec on every iteration.
             for field in ClusterConfig.__dataclass_fields__:
-                if field == "scheduler_tick_sec":
-                    continue
                 setattr(self.config, field, getattr(incoming, field))
             self.config_manager.save_cluster(self.config)
             return jsonify(self.config.to_dict())

@@ -74,18 +74,18 @@ class Scheduler:
                 self.tick()
             except Exception:  # noqa: BLE001 - a scheduler crash must not kill the Master
                 traceback.print_exc()
-            self._stop.wait(self.config.metric_interval_sec)
+            self._stop.wait(self.config.scheduler_tick_sec)
 
     # ------------------------------------------------------------------
     def tick(self) -> None:
-        # 1. Reap dead workers and reassign their tasks (on a coarser cadence).
-        self._tick_count = getattr(self, "_tick_count", 0) + 1
-        if self._tick_count % 5 == 0:
-            for worker in self.registry.reap():
-                count = self.fault_tolerance.handle_worker_death(worker)
-                if count:
-                    self.logbus.warn("", f"worker {worker.name} reaped; {count} tasks reassigned",
-                                     task_id="cluster")
+        # 1. Reap dead workers and reassign their tasks. Liveness must be
+        # re-evaluated every tick so the nodes page reflects reality within
+        # heartbeat_timeout_sec (not a coarser, fixed-multiple cadence).
+        for worker in self.registry.reap():
+            count = self.fault_tolerance.handle_worker_death(worker)
+            if count:
+                self.logbus.warn("", f"worker {worker.name} reaped; {count} tasks reassigned",
+                                 task_id="cluster")
 
         # 2. Advance each active job.
         for job in self.job_manager.list_jobs():

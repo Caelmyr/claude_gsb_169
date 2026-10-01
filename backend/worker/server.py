@@ -60,7 +60,7 @@ class WorkerServer:
         )
         self.heartbeat = HeartbeatThread(
             self.worker_id, self.master_url,
-            self.config.heartbeat_timeout_sec, self._status_payload,
+            self.config.heartbeat_interval_sec, self._status_payload,
         )
         self.client = HttpClient(timeout=5.0, retries=1)
         self.registered = False
