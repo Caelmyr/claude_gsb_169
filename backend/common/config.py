@@ -44,7 +44,7 @@ class ClusterConfig:
     """Tunable cluster-wide parameters (Master-side)."""
 
     heartbeat_interval_sec: float = 2.0          # worker -> master cadence
-    heartbeat_timeout_sec: float = 80.0          # mark worker dead after this silence
+    heartbeat_timeout_sec: float = 8.0           # mark worker dead after this silence
     task_timeout_sec: float = 300.0              # kill a task stuck longer than this
     max_attempts: int = 3                        # per-task retry budget
     retry_backoff_base_sec: float = 1.0          # exponential backoff base

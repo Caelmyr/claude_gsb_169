@@ -78,14 +78,13 @@ class Scheduler:
 
     # ------------------------------------------------------------------
     def tick(self) -> None:
-        # 1. Reap dead workers and reassign their tasks (on a coarser cadence).
-        self._tick_count = getattr(self, "_tick_count", 0) + 1
-        if self._tick_count % 5 == 0:
-            for worker in self.registry.reap():
-                count = self.fault_tolerance.handle_worker_death(worker)
-                if count:
-                    self.logbus.warn("", f"worker {worker.name} reaped; {count} tasks reassigned",
-                                     task_id="cluster")
+        # 1. Reap dead workers and reassign their tasks (every tick, so a lost
+        #    worker is reflected in the registry within one loop interval).
+        for worker in self.registry.reap():
+            count = self.fault_tolerance.handle_worker_death(worker)
+            if count:
+                self.logbus.warn("", f"worker {worker.name} reaped; {count} tasks reassigned",
+                                 task_id="cluster")
 
         # 2. Advance each active job.
         for job in self.job_manager.list_jobs():
